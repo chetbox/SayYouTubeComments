@@ -27,6 +27,9 @@ def say_comment(entry):
     say(entry['content']['#text'])
 
 if __name__ == '__main__':
-    for c in get_xml(comments_url(sys.argv[1]))['feed']['entry']:
-        say_comment(c)
-        sleep(1)
+    if len(sys.argv) == 2:
+        for c in get_xml(comments_url(sys.argv[1]))['feed']['entry']:
+            say_comment(c)
+            sleep(1)
+    else:
+        print 'Usage:\n\t%s VIDEO_ID' % sys.argv[0]
