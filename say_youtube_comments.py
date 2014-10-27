@@ -12,8 +12,7 @@ from time import sleep
 def get_xml(url):
     req = requests.get(url)
     if req.status_code != 200:
-        print('Error fetching %s (%d)' % (url, req.status.code))
-        sys.exit(1)
+        sys.exit('Error fetching %s (%d)' % (url, req.status.code))
     return xmltodict.parse(req.content)
 
 def comments_url(vid_id):
