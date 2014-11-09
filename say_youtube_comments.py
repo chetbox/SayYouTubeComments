@@ -8,6 +8,8 @@ import xmltodict
 import sys
 import subprocess
 from time import sleep
+from argparse import ArgumentParser
+from datetime import datetime, timedelta
 
 def get_xml(url):
     req = requests.get(url)
@@ -37,8 +39,24 @@ def get_and_say_comments(vid_id):
         say_comment(c)
         sleep(1)
 
+def next_time(time_str):
+    [h, m] = map(int, time_str.split(':'))
+    now = datetime.now()
+    when = now.replace(hour=h, minute=m, second=0, microsecond=0)
+    if h * 60 + m <= now.hour * 60 + now.minute:
+        when += timedelta(days=1) # tomorrow
+    return when
+
+def wait_until(when):
+    print('Waiting until {}'.format(when))
+    sleep((when - datetime.now()).total_seconds())
+
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print 'Usage:\n\t%s VIDEO_ID' % sys.argv[0]
-        sys.exit(1)
-    get_and_say_comments(sys.argv[1])
+    parser = ArgumentParser(description='Your YouTube comment alarm clock')
+    parser.add_argument('video_id', help='YouTube video ID')
+    parser.add_argument('--at', dest='time', help='Time at which to say comments. e.g. "07:30"')
+    args = parser.parse_args()
+
+    if args.time:
+        wait_until(next_time(args.time))
+    get_and_say_comments(args.video_id)
