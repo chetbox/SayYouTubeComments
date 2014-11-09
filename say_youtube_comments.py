@@ -17,9 +17,6 @@ def get_xml(url):
         sys.exit('Error fetching %s (%d)' % (url, req.status.code))
     return xmltodict.parse(req.content)
 
-def comments_url(vid_id):
-    return 'https://gdata.youtube.com/feeds/api/videos/%s/comments' % vid_id
-
 def say(text):
     print text
     subprocess.call(['say', text])
@@ -30,12 +27,18 @@ def say_comment(entry):
     say('%s says' % entry['author']['name'])
     say(entry['content']['#text'])
 
-def get_comments(vid_id):
-    for entry in get_xml(comments_url(vid_id))['feed']['entry']:
+def comments_url(vid_id, orderby=None):
+    url = 'https://gdata.youtube.com/feeds/api/videos/%s/comments' % vid_id
+    if orderby:
+        url += '?orderby=' + orderby
+    return url
+
+def get_comments(vid_id, orderby=None):
+    for entry in get_xml(comments_url(vid_id, orderby))['feed']['entry']:
         yield entry
 
-def get_and_say_comments(vid_id):
-    for c in get_comments(vid_id):
+def get_and_say_comments(vid_id, orderby=None):
+    for c in get_comments(vid_id, orderby):
         say_comment(c)
         sleep(1)
 
@@ -54,9 +57,10 @@ def wait_until(when):
 if __name__ == '__main__':
     parser = ArgumentParser(description='Your YouTube comment alarm clock')
     parser.add_argument('video_id', help='YouTube video ID')
-    parser.add_argument('--at', dest='time', help='Time at which to say comments. e.g. "07:30"')
+    parser.add_argument('--at', dest='time', help='Time at which to say comments. e.g "07:30"')
+    parser.add_argument('--orderby', default='published', help='"orderby" parameter to pass to the YouTube comments API e.g. "relevance"')
     args = parser.parse_args()
 
     if args.time:
         wait_until(next_time(args.time))
-    get_and_say_comments(args.video_id)
+    get_and_say_comments(args.video_id, orderby=args.orderby)
